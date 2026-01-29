@@ -15,9 +15,10 @@ def read_novel(novel_path):
                 break
 
             if line:
-                # normalise apostrophes + lowercase
-                line = line.lower().replace("’", "'")
-                lines.append(line)
+                if not line.lower().startswith("chapter"):
+                    # normalise apostrophes + lowercase
+                    line = line.lower().replace("’", "'")
+                    lines.append(line)
 
     return lines
 
@@ -41,10 +42,10 @@ print("Number of words =", len(cleaned_text))
 
 tokens = {}
 words = cleaned_text
-for i in range(len(words) - 6):
+for i in range(len(words) - 3):
     curr_token = " ".join(words[i:i+3])
-    next_token = " ".join(words[i+3:i+6])
-    if curr_token in list(tokens.keys()):
+    next_token = words[i+3]
+    if curr_token in tokens:
         if next_token in list(tokens[curr_token].keys()):
             tokens[curr_token][next_token] += 1
         else:
@@ -54,22 +55,20 @@ for i in range(len(words) - 6):
 
 print(tokens)
 
-starting_word = 'i'
-starting_tokens = []
-for token in list(tokens.keys()):
-    if token.startswith(starting_word + " "):
-        starting_tokens.append(token)
-
-starting_token = random.choice(starting_tokens)
+starting_token = 'mr rochester and'
 text = starting_token
 last_token = starting_token
 print(text)
-for i in range(30):
+for i in range(500):
+    if last_token not in tokens:
+        break
+
     next_words = list(tokens[last_token].keys())
     weights = list(tokens[last_token].values())
 
     next_token = random.choices(next_words, weights=weights, k=1)[0]
 
     text += " " + next_token
-    last_token = next_token
+    words_in_text = text.split()
+    last_token = " ".join(words_in_text[-3:])
 print(text)
