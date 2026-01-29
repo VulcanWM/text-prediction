@@ -31,6 +31,38 @@ def tokenize(lines):
 
     return words
 
+def create_model(cleaned_text, n_grams=3):
+    model = {}
+    words = cleaned_text
+    for i in range(len(words) - n_grams):
+        curr_token = " ".join(words[i:i+n_grams])
+        next_token = words[i+n_grams]
+        if curr_token in model:
+            if next_token in list(model[curr_token].keys()):
+                model[curr_token][next_token] += 1
+            else:
+                model[curr_token][next_token] = 1
+        else:
+            model[curr_token] = {next_token: 1}
+    return model
+
+
+def predict_text(model, starting_token, n_grams=3):
+    text = starting_token
+    last_token = starting_token
+    for i in range(500):
+        if last_token not in model:
+            break
+
+        next_words = list(model[last_token].keys())
+        weights = list(model[last_token].values())
+
+        next_token = random.choices(next_words, weights=weights, k=1)[0]
+
+        text += " " + next_token
+        words_in_text = text.split()
+        last_token = " ".join(words_in_text[n_grams * -1:])
+    return text
 
 novel_lines = read_novel("jane-eyre.txt")
 print("number of lines =", len(novel_lines))
@@ -38,37 +70,9 @@ print("number of lines =", len(novel_lines))
 cleaned_text = tokenize(novel_lines)
 
 print("Number of words =", len(cleaned_text))
-# print(cleaned_text)
 
-tokens = {}
-words = cleaned_text
-for i in range(len(words) - 3):
-    curr_token = " ".join(words[i:i+3])
-    next_token = words[i+3]
-    if curr_token in tokens:
-        if next_token in list(tokens[curr_token].keys()):
-            tokens[curr_token][next_token] += 1
-        else:
-            tokens[curr_token][next_token] = 1
-    else:
-        tokens[curr_token] = {next_token: 1}
-
-print(tokens)
+model = create_model(cleaned_text, 3)
 
 starting_token = 'mr rochester and'
-text = starting_token
-last_token = starting_token
-print(text)
-for i in range(500):
-    if last_token not in tokens:
-        break
-
-    next_words = list(tokens[last_token].keys())
-    weights = list(tokens[last_token].values())
-
-    next_token = random.choices(next_words, weights=weights, k=1)[0]
-
-    text += " " + next_token
-    words_in_text = text.split()
-    last_token = " ".join(words_in_text[-3:])
+text = predict_text(model, starting_token, 3)
 print(text)
